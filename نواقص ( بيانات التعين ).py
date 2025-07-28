@@ -154,3 +154,49 @@ if uploaded_file:
     else:
         st.warning("⚠️ لا يوجد عمود للجنسية في الملف.")
 
+
+
+    # -------------------- تبويب: تحليل بيانات المؤسسة التعليمية -------------------- #
+
+    st.markdown("### 🎓 تحليل نواقص الدرجة والمؤسسة التعليمية حسب المستوى التعليمي")
+
+    target_levels = [
+        'بكالوريوس', 'إنجاز', 'ماجستير', 'دكتوراه',
+        'اعدادي', 'ابتدائي', 'ثانوي', 'ثانوية عامة',
+        'دبلوم', 'دبلوم عالي'
+    ]
+
+    edu_fields = ['تاريخ انتهاء الدراسة',  'درجة المؤهل' , 'المؤسسة التعليمية']
+
+    # تصفية الموظفين بالمستوى التعليمي المطلوب
+    if 'المستوى التعليمي' in df.columns:
+        df_edu = df[df['المستوى التعليمي'].astype(str).str.strip().isin(target_levels)].copy()
+
+        for field in edu_fields:
+            if field in df_edu.columns:
+                st.subheader(f"🔍 نواقص في: {field}")
+
+                missing_rows = df_edu[df_edu[field].isnull() | (df_edu[field].astype(str).str.strip() == "")]
+                total_rows = len(df_edu)
+                missing_count = len(missing_rows)
+                missing_percent = (missing_count / total_rows) * 100 if total_rows else 0
+
+                st.write(f"عدد الموظفين في المستويات التعليمية المحددة: **{total_rows}**")
+                st.write(f"عدد السجلات التي لا تحتوي على **{field}**: **{missing_count}**")
+                st.write(f"نسبة النقص: **{missing_percent:.2f}%**")
+
+                st.dataframe(missing_rows, use_container_width=True)
+
+                # زر تحميل
+                csv = missing_rows.to_csv(index=False).encode("utf-8-sig")
+                st.download_button(
+                    label=f"تحميل البيانات الناقصة ({field})",
+                    data=csv,
+                    file_name=f"missing_{field.replace(' ', '_')}.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.warning(f"⚠️ العمود '{field}' غير موجود.")
+    else:
+        st.warning("⚠️ لا يوجد عمود 'المستوى التعليمي' في الملف.")
+
