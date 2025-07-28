@@ -1,3 +1,4 @@
+
 import streamlit as st
 import pandas as pd
 
@@ -27,7 +28,6 @@ if uploaded_file:
         "رقم الهوية", "تاريخ انتهاء الهوية", "العنوان المنطقة", "العنوان الامارة", "رقم الهاتف"
     ]
 
-
     st.success("تم تحميل البيانات بنجاح")
     tabs = st.tabs(fields)
 
@@ -35,22 +35,23 @@ if uploaded_file:
         with tabs[i]:
             st.subheader(f"نواقص في: {field}")
 
-            missing_rows = df[df[field].isnull() | (df[field].astype(str).str.strip() == '')]
-            total_rows = len(df)
-            missing_count = len(missing_rows)
-            missing_percent = (missing_count / total_rows) * 100
+            if field in df.columns:
+                missing_rows = df[df[field].isnull() | (df[field].astype(str).str.strip() == '')]
+                total_rows = len(df)
+                missing_count = len(missing_rows)
+                missing_percent = (missing_count / total_rows) * 100
 
-            st.write(f"عدد السجلات التي تحتوي على نقص: **{missing_count}** من أصل {total_rows}")
-            st.write(f"نسبة النقص: **{missing_percent:.2f}%**")
+                st.write(f"عدد السجلات التي تحتوي على نقص: **{missing_count}** من أصل {total_rows}")
+                st.write(f"نسبة النقص: **{missing_percent:.2f}%**")
 
-            st.dataframe(missing_rows, use_container_width=True)
+                st.dataframe(missing_rows, use_container_width=True)
 
-            csv = missing_rows.to_csv(index=False).encode("utf-8-sig")
-            st.download_button(
-                label="تحميل البيانات الناقصة",
-                data=csv,
-                file_name=f"missing_{field.replace(' ', '_')}.csv",
-                mime="text/csv"
-            )
-
-
+                csv = missing_rows.to_csv(index=False).encode("utf-8-sig")
+                st.download_button(
+                    label="تحميل البيانات الناقصة",
+                    data=csv,
+                    file_name=f"missing_{field.replace(' ', '_')}.csv",
+                    mime="text/csv"
+                )
+            else:
+                st.warning(f"⚠️ الحقل **{field}** غير موجود في البيانات.")
